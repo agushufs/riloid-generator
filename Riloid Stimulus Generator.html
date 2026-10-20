@@ -1,0 +1,312 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Riloid Stimulus Generator</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: controls column on the left, a sticky preview on the right, description card full width below.
+   Palette: one cool grey ramp (hue ~215, very low chroma); the accent is just a darker (light theme) or lighter (dark theme) step of the same ramp. */
+:root{
+ --bg:#e9ecee;--panel:#f5f6f7;--field:#e2e6e9;--soft:#d9dee2;--line:#c9cfd4;
+ --ink:#1f252b;--mute:#58616b;--accent:#3a4550;--accent-hi:#2b343d;--accent-ink:#f5f6f7;
+ --sans:'IBM Plex Sans',system-ui,-apple-system,'Segoe UI',sans-serif;
+ --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+ --bg:#121518;--panel:#1a1e22;--field:#13161a;--soft:#262c32;--line:#2d343b;
+ --ink:#e3e6e9;--mute:#97a0a9;--accent:#a9b3bd;--accent-hi:#c2cad2;--accent-ink:#13161a;color-scheme:dark}}
+:root[data-theme="dark"]{
+ --bg:#121518;--panel:#1a1e22;--field:#13161a;--soft:#262c32;--line:#2d343b;
+ --ink:#e3e6e9;--mute:#97a0a9;--accent:#a9b3bd;--accent-hi:#c2cad2;--accent-ink:#13161a;color-scheme:dark}
+
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 var(--sans);
+ padding-block:22px 48px;
+ padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.wrap{max-width:1120px;margin:0 auto;display:grid;gap:16px}
+header{padding-bottom:4px}
+h1{margin:0;font-size:1.35rem;font-weight:600;letter-spacing:-.01em;text-wrap:balance}
+header p{margin:4px 0 0;color:var(--mute);max-width:68ch}
+main{display:grid;gap:16px;grid-template-columns:minmax(0,1fr)}
+@media(min-width:900px){
+ main{grid-template-columns:372px minmax(0,1fr)}
+ #ctl{grid-column:1;grid-row:1}
+ #pv{grid-column:2;grid-row:1}
+}
+@media(min-width:900px) and (min-height:900px){.sticky{position:sticky;top:16px}}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px;min-width:0}
+
+h2{font:600 .7rem/1 var(--sans);text-transform:uppercase;letter-spacing:.1em;color:var(--mute);margin:22px 0 14px;padding-top:18px;border-top:1px solid var(--line)}
+h2:first-child{margin-top:0;padding-top:0;border-top:0}
+
+.field{display:grid;gap:5px;margin-bottom:14px;min-width:0}
+.field>label,.field>span{font-weight:500;font-size:.85rem}
+.row{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:7px 10px;margin-bottom:16px}
+.row>label{font-weight:500;font-size:.85rem;min-width:0}
+.num{display:flex;align-items:center;gap:6px}
+.num .u{min-width:3ch;font:400 .75rem var(--mono);color:var(--mute)}
+.hint{display:block;color:var(--mute);font-size:.78rem;line-height:1.4}
+.row .hint{grid-column:1/-1;margin-top:-2px}
+#alias{border-left:2px solid var(--ink);padding-left:8px;color:var(--ink)}
+
+select,input[type=number],input[type=color]{font:inherit;color:var(--ink);background:var(--field);border:1px solid var(--line);border-radius:6px;min-height:34px}
+select{width:100%;padding:6px 8px}
+input[type=number]{padding:6px 8px;font-family:var(--mono);font-size:.85rem;font-variant-numeric:tabular-nums;-moz-appearance:textfield;appearance:textfield}
+input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+.num input[type=number]{width:84px;text-align:right}
+.field input[type=number]{width:100%}
+input[type=color]{width:100%;height:36px;padding:3px;cursor:pointer}
+select:focus-visible,input:focus-visible,textarea:focus-visible,button:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+input[type=range]{grid-column:1/-1;width:100%;height:22px;margin:0;background:transparent;cursor:pointer;-webkit-appearance:none;appearance:none;--p:50%}
+input[type=range]::-webkit-slider-runnable-track{height:4px;border-radius:2px;background:linear-gradient(to right,var(--accent) var(--p),var(--line) var(--p))}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;margin-top:-6px;border-radius:50%;background:var(--accent);border:2px solid var(--panel);box-shadow:0 0 0 1px var(--accent)}
+input[type=range]::-moz-range-track{height:4px;border-radius:2px;background:var(--line)}
+input[type=range]::-moz-range-progress{height:4px;border-radius:2px;background:var(--accent)}
+input[type=range]::-moz-range-thumb{width:12px;height:12px;border-radius:50%;background:var(--accent);border:2px solid var(--panel);box-shadow:0 0 0 1px var(--accent)}
+
+button{font:600 .85rem var(--sans);background:var(--accent);color:var(--accent-ink);border:1px solid var(--accent);border-radius:6px;padding:8px 14px;min-height:36px;cursor:pointer}
+button:hover{background:var(--accent-hi);border-color:var(--accent-hi)}
+button.s{background:transparent;color:var(--ink);border-color:var(--line)}
+button.s:hover{background:var(--soft)}
+.btns{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+
+.seg{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);gap:2px;padding:2px;background:var(--field);border:1px solid var(--line);border-radius:8px;margin:0 0 14px}
+.seg.w{grid-auto-flow:row;grid-template-columns:repeat(2,minmax(0,1fr))}
+.seg label{position:relative;text-align:center;padding:6px 8px;border-radius:6px;cursor:pointer;font-size:.8rem;font-weight:500;color:var(--mute)}
+.seg input{position:absolute;inset:0;width:100%;height:100%;margin:0;opacity:0;cursor:pointer}
+.seg label:has(input:checked){background:var(--panel);color:var(--ink);box-shadow:0 0 0 1px var(--line)}
+.seg label:has(input:focus-visible){outline:2px solid var(--accent);outline-offset:1px}
+
+.chks{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+.chks label{display:flex;gap:8px;align-items:center;border:1px solid var(--line);border-radius:6px;padding:7px 10px;cursor:pointer;font-size:.85rem;font-weight:500;background:var(--field)}
+.chks input{accent-color:var(--accent);width:16px;height:16px;margin:0}
+.chks label:has(input:checked){border-color:var(--accent)}
+
+canvas{display:block;width:100%;max-width:560px;aspect-ratio:1;margin:0 auto;border:1px solid var(--line);border-radius:6px;background:var(--field)}
+.cap{margin:8px auto 0;max-width:560px;font:400 .75rem var(--mono);color:var(--mute);font-variant-numeric:tabular-nums}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 12px;margin-top:16px}
+.grid2 .field{margin:0}
+.grid2 .hint{margin-top:0}
+#msg{min-height:1.4em;margin-top:10px;font-size:.8rem;color:var(--mute)}
+
+textarea{width:100%;min-height:220px;resize:vertical;padding:10px 12px;border-radius:6px;border:1px solid var(--line);background:var(--field);color:var(--ink);font:400 .8rem/1.55 var(--mono)}
+details{margin-top:18px;border-top:1px solid var(--line);padding-top:12px}
+summary{cursor:pointer;font-weight:600;font-size:.85rem}
+details p{margin:10px 0;font-size:.88rem;max-width:80ch}
+code,.eq{font-family:var(--mono);font-size:.8rem}
+code{overflow-wrap:anywhere}
+.eq{display:block;margin:8px 0;padding:10px 12px;background:var(--field);border:1px solid var(--line);border-radius:6px;overflow-x:auto;white-space:pre}
+.hide{display:none!important}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
+</style>
+
+<div class="wrap">
+<header>
+ <h1>Riloid Stimulus Generator</h1>
+ <p>Riloids, checkerboards, vasareloids and radial gratings, parametrized in pixels as in Zanker &amp; Walker (2004).</p>
+</header>
+
+<main>
+ <section class="panel" id="ctl" aria-label="Pattern controls"></section>
+
+ <section id="pv" aria-label="Preview and export">
+  <div class="panel sticky">
+   <canvas id="cv" width="512" height="512" role="img" aria-label="Generated stimulus preview"></canvas>
+   <div class="cap" id="cap"></div>
+   <div class="grid2">
+    <div class="field"><label for="size">Output size (px)</label><select id="size"><option>256</option><option selected>512</option><option>768</option><option>1024</option><option>2048</option></select></div>
+    <div class="field"><label for="deg">Image width (° visual angle)</label><input type="number" id="deg" min="0" step=".1" value="10"><small class="hint">0 = not reported</small></div>
+    <div class="field"><label for="jq">JPG quality (0.5–1)</label><input type="number" id="jq" min=".5" max="1" step=".05" value=".95"></div>
+    <div class="field"><label for="pdfw">PDF print width (cm)</label><input type="number" id="pdfw" min="1" max="50" step=".5" value="10"></div>
+   </div>
+   <div class="btns"><button id="png">Download PNG</button><button id="jpg">Download JPG</button><button id="pdf">Download PDF</button></div>
+   <div id="msg" role="status" aria-live="polite"></div>
+  </div>
+ </section>
+</main>
+
+<section class="panel" id="dsc">
+ <h2>Parameter description</h2>
+ <div class="seg" style="max-width:420px"><label><input type="radio" name="fmt" value="apa" checked><span>APA 7 (auto)</span></label><label><input type="radio" name="fmt" value="tech"><span>Technical list</span></label><label><input type="radio" name="fmt" value="json"><span>JSON</span></label></div>
+ <textarea id="desc" readonly aria-label="Generated parameter description"></textarea>
+ <div class="btns"><button id="copy">Copy text</button><button class="s" id="txt">Download .txt</button></div>
+ <small class="hint" style="margin-top:10px">Generated from the exact values above. Parameters are in pixels of the output image, so changing the output size changes the stimulus. Keep it fixed across a study.</small>
+ <details><summary>How each pattern is built</summary>
+  <p><b>Riloid</b>, exactly as in Zanker (2004, eqs 1–3) and Zanker et al. (2003). x and y are in pixels from the top-left corner, and rotation is applied about the image center first.</p>
+  <pre class="eq">I(x,y) = 0.5[1 + sin(2π(x − φ(y))/λ)]
+φ(y)   = A·sin(2π·y/μ(y))
+μ(y)   = μ_top + y(μ_top − μ_bottom)/(y_top − y_bottom)</pre>
+  <p>λ is the grating period. A is the phase-modulation amplitude, a sideways shift in pixels, so the phase amplitude is 2πA/λ rad. μ is the phase-modulation period, shrinking linearly from the top to the bottom edge (y_top = 0, y_bottom = image height). Turning waviness off sets A = 0, a straight grating. Grey levels run from 0 (black) to 1 (white) as in the paper.</p>
+  <p>Parameters are in output pixels, as in the papers (512 × 512 images), so keep the output size fixed. Zanker (2004) notes that the meaningful quantity is size relative to λ. Riley's <i>Fall</i> seen from 2 m has λ ≈ 0.37° (about 3 cycles/deg).</p>
+  <p><b>Vasareloid</b> and <b>radial grating</b> follow the control patterns of Zanker (2004, Fig. 7), but the paper gives no equations for them. The radial pattern has 128 alternating sectors there (n = 64 cycles here, square wave). The checkerboard with waviness and the vasareloid's smooth check-size variation <code>(x′,y′) = s(r)·(x,y)</code>, <code>s = 1 − B(1 − r²/R²)</code> for r &lt; R, are original constructions.</p>
+  <p>Square-wave edges are antialiased by a linear ramp whose pixel width comes from the analytic phase gradient |∇θ|.</p>
+ </details>
+</section>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+const row=(id,l,mn,mx,st,v,u,extra='')=>`<div class="row" id="r_${id}"><label for="n_${id}">${l}</label><div class="num"><input type="number" id="n_${id}" min="${mn}" max="${mx}" step="${st}" value="${v}" inputmode="decimal"><span class="u">${u}</span></div><input type="range" id="${id}" min="${mn}" max="${mx}" step="${st}" value="${v}" aria-label="${l}">${extra}</div>`;
+const sel=(id,l,opts)=>`<div class="field"><label for="${id}">${l}</label><select id="${id}">${opts}</select></div>`;
+
+$('ctl').innerHTML=
+`<h2>Pattern</h2>`+
+sel('pat','Pattern type','<option value="lines">Riloid (lines)</option><option value="check">Checkerboard</option><option value="bulge">Vasareloid (bulged checkerboard)</option><option value="radial">Radial grating</option>')+
+sel('pset','Load parameters from the papers','<option value="">— choose —</option><option value="fall">Riloid like Riley’s Fall (Zanker 2004, Fig. 2 centre)</option><option value="flat">Riloid, constant μ = 180 (Fig. 2 left)</option><option value="coarse">Riloid, λ = 32 (Fig. 2 right)</option><option value="std">Standard riloid (λ 32, A 16, μ 256→64)</option><option value="radial">Radial grating, 128 sectors (Fig. 7)</option>')+
+`<h2>Geometry</h2>`+
+row('lam','Grating period λ',2,128,.5,5,'px','<small class="hint" id="o_lam"></small><small class="hint hide" id="alias"></small>')+
+row('rot','Rotation',0,360,1,0,'°')+
+row('ns','Black/white cycles n (2n sectors)',2,128,1,64,'')+
+row('bs','Bulge strength B',0,.9,.01,.6,'')+
+row('br','Bulge radius R (image widths)',.1,.7,.01,.4,'img')+
+`<div id="pmod"><h2>Phase modulation</h2><div class="chks"><label><input type="checkbox" id="tw" checked>Waviness</label></div>`+
+row('wa','Modulation amplitude A',0,64,.5,32,'px')+
+row('mu0','Modulation period μ (top)',20,1000,1,400,'px')+
+row('mu1','Modulation period μ (bottom)',20,1000,1,130,'px')+`</div>`+
+`<h2>Appearance</h2>`+
+sel('prof','Luminance profile','<option value="sin">Sinusoidal (Zanker)</option><option value="sq">Square wave (crisp, antialiased)</option>')+
+row('blur','Edge ramp half-width',.5,4,.1,.5,'px')+
+row('con','Michelson contrast',0,100,1,100,'%')+
+row('lum','Mean luminance (0–255)',0,255,1,128,'')+
+`<h2>Color</h2><div class="chks"><label><input type="checkbox" id="col">Two-tone color</label></div><small class="hint" style="margin:-4px 0 12px">Off = grayscale (mean luminance + contrast).</small>`+
+`<div id="colbox" class="hide"><div class="seg w"><label><input type="radio" name="pre" value="hc" checked><span>High contrast</span></label><label><input type="radio" name="pre" value="lc"><span>Low contrast</span></label><label><input type="radio" name="pre" value="hs"><span>High saturation</span></label><label><input type="radio" name="pre" value="ls"><span>Low saturation</span></label></div>`+
+row('hA','Hue A',0,360,1,230,'°','<small class="hint" id="hbi"></small>')+
+`<div class="grid2" style="margin-top:0"><div class="field"><label for="ca">Tone A (dark)</label><input type="color" id="ca"></div><div class="field"><label for="cb">Tone B (light)</label><input type="color" id="cb"></div></div></div>`;
+
+const P={},T={tw:true,col:false};
+const rr=(x,d=2)=>+(+x).toFixed(d),degv=()=>+$('deg').value;
+const jqv=()=>Math.min(1,Math.max(.5,+$('jq').value||.95));
+
+function updLam(){const N=+$('size').value,d=degv(),f=N/P.lam;
+ $('o_lam').textContent=rr(f,1)+' cycles/image'+(d>0?' · '+rr(f/d,2)+' cycles/deg':'');
+ const al=$('alias');al.classList.toggle('hide',P.lam>=4);al.textContent='Aliasing risk: a period under 4 px does not render cleanly. Raise λ or the output size.'}
+function vis(){const p=$('pat').value,h=(id,b)=>$('r_'+id).classList.toggle('hide',b),wv=T.tw&&(p==='lines'||p==='check');
+ h('lam',p==='radial');$('pmod').classList.toggle('hide',p==='bulge'||p==='radial');h('wa',!wv);h('mu0',!wv);h('mu1',!(wv&&p==='lines'));
+ h('ns',p!=='radial');h('bs',p!=='bulge');h('br',p!=='bulge');h('blur',$('prof').value!=='sq');h('con',T.col);h('lum',T.col);
+ $('r_mu0').querySelector('label').textContent=p==='lines'?'Modulation period μ (top)':'Modulation period μ';updLam()}
+let tm;const go=()=>{clearTimeout(tm);tm=setTimeout(render,50)};
+
+// every slider has a typeable number box; typing applies live inside the range and clamps on commit
+function bind(id,after){
+ const r=$(id),n=$('n_'+id),lo=+r.min,hi=+r.max;
+ const fill=()=>r.style.setProperty('--p',(100*(Math.min(hi,Math.max(lo,+r.value))-lo)/(hi-lo))+'%');
+ const apply=v=>{P[id]=v;fill();if(after)after();go()};
+ P[id]=+r.value;fill();
+ r.addEventListener('input',()=>{n.value=r.value;apply(+r.value)});
+ n.addEventListener('input',()=>{const v=parseFloat(n.value);if(!isFinite(v)||v<lo||v>hi)return;r.value=v;apply(v)});
+ n.addEventListener('change',()=>{let v=parseFloat(n.value);if(!isFinite(v))v=+r.value;v=Math.min(hi,Math.max(lo,v));n.value=v;r.value=v;apply(v)});
+}
+['lam','rot','ns','bs','br','wa','mu0','mu1','blur','con','lum'].forEach(id=>bind(id,id==='lam'?updLam:null));
+['size','deg'].forEach(id=>{$(id).addEventListener('input',()=>{updLam();go()});$(id).addEventListener('change',()=>{updLam();go()})});
+
+// color: Hue B is always derived from Hue A; tone lightness is solved to hit the preset's luminance contrast
+const PRE={hc:['high contrast',70,.9,180],lc:['low contrast',55,.12,30],hs:['high saturation',100,.5,180],ls:['low saturation',15,.5,30]};
+const C={pre:'hc',hA:230,hB:50};
+const hrgb=(h,s,l)=>{s/=100;const k=n=>(n+h/30)%12,a=s*Math.min(l,1-l),f=n=>l-a*Math.max(-1,Math.min(k(n)-3,Math.min(9-k(n),1)));return[f(0),f(8),f(4)]};
+const h2x=(h,s,l)=>'#'+hrgb(h,s,l).map(x=>Math.round(x*255).toString(16).padStart(2,'0')).join('');
+const lum1=c=>{const g=x=>x<=.04045?x/12.92:Math.pow((x+.055)/1.055,2.4);return .2126*g(c[0])+.7152*g(c[1])+.0722*g(c[2])};
+const solveL=(h,s,Y)=>{let lo=0,hi=1;for(let i=0;i<24;i++){const m=(lo+hi)/2;if(lum1(hrgb(h,s,m))<Y)lo=m;else hi=m}return(lo+hi)/2};
+function applyPre(){if(!C.pre){$('hbi').textContent='Hue B: custom tones (pick a preset to re-link).';return}
+ const[,S,m,off]=PRE[C.pre],SY=.5;C.hB=(C.hA+off)%360;
+ $('ca').value=h2x(C.hA,S,solveL(C.hA,S,SY*(1-m)/2));$('cb').value=h2x(C.hB,S,solveL(C.hB,S,SY*(1+m)/2));
+ $('hbi').textContent='Hue B is automatic: Hue A + '+off+'° = '+C.hB+'°. Tone lightness is re-solved so contrast stays '+PRE[C.pre][0]+'.'}
+document.querySelectorAll('[name=pre]').forEach(e=>e.onchange=()=>{C.pre=e.value;applyPre();render()});
+bind('hA',()=>{C.hA=P.hA;if(!C.pre){C.pre='hc';document.querySelector('[name=pre][value=hc]').checked=true}applyPre()});
+['ca','cb'].forEach(id=>$(id).oninput=()=>{C.pre=null;document.querySelectorAll('[name=pre]').forEach(e=>e.checked=false);applyPre();go()});
+['tw','col'].forEach(i=>$(i).onchange=()=>{T[i]=$(i).checked;if(i==='col')$('colbox').classList.toggle('hide',!T.col);vis();render()});
+$('pat').onchange=()=>{vis();render()};$('prof').onchange=()=>{vis();render()};
+
+// ---- rendering (all lengths in output pixels) ----
+function render(){
+ const N=+$('size').value,cv=$('cv');cv.width=cv.height=N;
+ const ctx=cv.getContext('2d'),img=ctx.createImageData(N,N),px=img.data,TP=2*Math.PI;
+ const p=$('pat').value,wv=T.tw&&(p==='lines'||p==='check'),A=wv?P.wa:0,kx=TP/P.lam,th=P.rot*Math.PI/180,c=Math.cos(th),s=Math.sin(th),sq=$('prof').value==='sq',hw=P.blur;
+ const m0=P.mu0,m1=P.mu1;
+ const hx=h=>[1,3,5].map(i=>parseInt(h.substr(i,2),16)),CA=hx($('ca').value),CB=hx($('cb').value);
+ const prof=(cs,g)=>sq?Math.max(-1,Math.min(1,cs/(g*hw))):cs;   // square wave: ramp of half-width hw px using |∇θ| (rad/px)
+ for(let j=0;j<N;j++)for(let i=0;i<N;i++){
+  const x0=i-N/2,y0=j-N/2,x=x0*c+y0*s,y=-x0*s+y0*c;let v;
+  if(p==='radial'){const r=Math.max(Math.hypot(x,y),1e-6);v=prof(Math.cos(P.ns*Math.atan2(y,x)),P.ns/r)}
+  else if(p==='bulge'){const R=P.br*N,R2=R*R,r2=x*x+y*y,ins=r2<R2,sc=ins?1-P.bs*(1-r2/R2):1,k=ins?2*P.bs/R2:0,kxy=k*x*y;   // (x',y')=s(r)(x,y)
+   v=prof(Math.cos(kx*x*sc),kx*Math.hypot(sc+k*x*x,kxy))*prof(Math.cos(kx*y*sc),kx*Math.hypot(kxy,sc+k*y*y))}
+  else if(p==='lines'){const xl=x+N/2,yt=Math.min(N,Math.max(0,y+N/2)),mu=m0+(m1-m0)*yt/N,psi=TP*yt/mu,dpsi=TP*(mu-yt*(m1-m0)/N)/(mu*mu);
+   // Zanker (2004) eqs 1-3: I = .5[1+sin(2π(x−φ(y))/λ)], φ(y) = A sin(2π y/μ(y)), μ(y) linear from μtop to μbottom
+   v=prof(Math.sin(kx*(xl-A*Math.sin(psi))),kx*Math.hypot(1,A*Math.cos(psi)*dpsi))}
+  else{const xl=x+N/2,yl=y+N/2,q=TP/m0;
+   v=prof(Math.sin(kx*(xl-A*Math.sin(q*yl))),kx*Math.hypot(1,A*Math.cos(q*yl)*q))*prof(Math.sin(kx*(yl-A*Math.sin(q*xl))),kx*Math.hypot(1,A*Math.cos(q*xl)*q))}
+  const o=(j*N+i)*4;
+  if(T.col){const t=(v+1)/2;for(let k=0;k<3;k++)px[o+k]=CA[k]+(CB[k]-CA[k])*t}
+  else{const L=Math.max(0,Math.min(255,P.lum+Math.min(P.lum,255-P.lum)*P.con/100*v));px[o]=px[o+1]=px[o+2]=L}
+  px[o+3]=255}
+ ctx.putImageData(img,0,0);$('cap').textContent=N+' × '+N+' px';describe()}
+
+function describe(){
+ const N=+$('size').value,deg=+$('deg').value,fmt=document.querySelector('[name=fmt]:checked').value,sq=$('prof').value==='sq',p=$('pat').value,wv=T.tw&&(p==='lines'||p==='check'),lam=P.lam;
+ const fi=rr(N/lam),cpd=deg>0?rr(N/lam/deg):null,NM={lines:'riloid line pattern',check:'checkerboard',bulge:'vasareloid (bulged checkerboard)',radial:'radial grating'}[p];
+ const hx=h=>[1,3,5].map(i=>parseInt(h.substr(i,2),16)),lin=c=>{c/=255;return c<=.04045?c/12.92:Math.pow((c+.055)/1.055,2.4)},Y=h=>{const[a,b,c]=hx(h);return .2126*lin(a)+.7152*lin(b)+.0722*lin(c)};
+ const ca=$('ca').value.toUpperCase(),cb=$('cb').value.toUpperCase(),ya=Y(ca),yb=Y(cb),mc=rr(100*Math.abs(yb-ya)/((yb+ya)||1),1),pn=C.pre?PRE[C.pre][0]:'custom';
+ const fT=`λ = ${lam} px (${fi} cycles per image${cpd?`; ${cpd} cycles per degree`:''})`;
+ let eq,defs,key,cite='',refs=[];
+ const ZW='Zanker, J. M., & Walker, R. (2004). A new look at Op art: Towards a simple explanation of illusory motion. Naturwissenschaften, 91, 149–156. https://doi.org/10.1007/s00114-004-0511-2',Z4='Zanker, J. M. (2004). Looking at Op art from a computational viewpoint. Spatial Vision, 17(1–2), 75–94.',Z3='Zanker, J. M., Doyle, M., & Walker, R. (2003). Gaze stability of observers watching Op art pictures. Perception, 32, 1037–1049.';
+ if(p==='lines'){eq='I(x, y) = 0.5[1 + sin(2π(x − φ(y))/λ)]';defs=wv?`${fT}; φ(y) = A·sin(2π·y/μ(y)), with A = ${P.wa} px (phase amplitude 2πA/λ = ${rr(2*Math.PI*P.wa/lam,1)} rad); μ(y) = μ_top + y(μ_top − μ_bottom)/(y_top − y_bottom), with μ_top = ${P.mu0} px, μ_bottom = ${P.mu1} px, y_top = 0 and y_bottom = ${N} px (x and y in pixels from the top-left corner)`:`${fT}; φ(y) = 0 (A = 0, straight grating)`;key=`λ = ${lam} px`+(wv?`, A = ${P.wa} px, μ = ${P.mu0}–${P.mu1} px (top to bottom)`:', A = 0');cite=', using the riloid algorithm of Zanker (2004; see also Zanker et al., 2003; Zanker & Walker, 2004)';refs=[Z4,Z3,ZW]}
+ else if(p==='check'){eq='I(x, y) = 0.5[1 + sin(2π(x − φ(y))/λ)·sin(2π(y − φ(x))/λ)]';defs=`${fT}; `+(wv?`φ(u) = A·sin(2π·u/μ) with A = ${P.wa} px and μ = ${P.mu0} px`:'φ = 0 (A = 0)');key=`λ = ${lam} px`+(wv?`, A = ${P.wa} px, μ = ${P.mu0} px`:'')}
+ else if(p==='bulge'){eq='I(x, y) = ½[1 + cos(2πx′/λ)·cos(2πy′/λ)]';defs=`${fT}; (x′, y′) = s(r)·(x, y), r = √(x² + y²), s(r) = 1 − B(1 − r²/R²) for r < R and s(r) = 1 otherwise, with B = ${P.bs} and R = ${rr(P.br*N,1)} px`;key=`λ = ${lam} px, B = ${P.bs}, R = ${rr(P.br*N,1)} px`;cite=', modeled on the vasareloid control pattern shown by Zanker (2004, Figure 7)';refs=[Z4]}
+ else{eq='I(x, y) = ½[1 + cos(nα)]';defs=`α is the polar angle and n = ${P.ns} black-and-white cycles (${2*P.ns} alternating sectors)`;key=`n = ${P.ns} cycles (${2*P.ns} sectors)`;cite=', modeled on the radial grating shown by Zanker (2004, Figure 7)';refs=[Z4]}
+ const edge=sq?`The cosine was replaced by its sign (square wave), with every edge antialiased by a linear ramp ${rr(2*P.blur,1)} px wide`:'Intensity was sinusoidal (smooth gradients between the two extreme levels)';
+ const colSent=T.col?`Patterns were rendered in two tones (${ca} and ${cb}; ${pn} palette${C.pre?`; HSL hues ${C.hA}° and ${C.hB}°, Hue B = Hue A + ${PRE[C.pre][3]}°`:''}), with intermediate values linearly interpolated in sRGB. Michelson contrast computed on relative luminance was ${mc}%.`:`Michelson contrast was ${P.con}% around a mean luminance of ${P.lum} (8-bit scale, 0–255).`;
+ let t;
+ if(fmt==='apa'){
+  t=`Stimuli were ${NM}s generated with a custom web-based generator (Riloid Generator, Version 1.4)${cite}. Each image measured ${N} × ${N} pixels`+(deg>0?` and subtended ${deg}° of visual angle`:'')+`. Intensity at pixel position (x, y), measured from the image center after rotating coordinates by ${P.rot}° (y positive downward), was ${eq}, where ${defs}. ${edge}. ${colSent}\n\nFigure 1\nExample ${NM[0].toUpperCase()+NM.slice(1)} Stimulus\n\nNote. ${key}, rotation = ${P.rot}°.`+(refs.length?'\n\nReferences\n'+refs.join('\n'):'');
+ }else if(fmt==='tech'){
+  t=`Riloid Generator v1.4\nImage size: ${N} x ${N} px\n`+(deg>0?`Visual angle (width): ${deg} deg\n`:'')+`Pattern: ${NM}\nEquation: ${eq}\nDefinitions: ${defs}\nRotation: ${P.rot} deg\nLuminance profile: ${sq?`square wave, antialias ramp width ${rr(2*P.blur,1)} px`:'sinusoidal'}\n`+(T.col?`Color: two-tone, A = ${ca}, B = ${cb}, palette = ${pn}`+(C.pre?`, hue A = ${C.hA} deg, hue B = ${C.hB} deg (auto)`:'')+`, relative-luminance Michelson contrast = ${mc}%`:`Michelson contrast: ${P.con}%\nMean luminance: ${P.lum} (0-255)`);
+ }else{const o={generator:'Riloid Generator v1.4',sizePx:N,visualAngleDeg:deg||null,pattern:p,rotationDeg:P.rot};
+  if(p!=='radial'){o.periodLambdaPx=lam;o.cyclesPerImage=fi;o.cyclesPerDegree=cpd}
+  if(p==='radial')o.spokes=P.ns;if(p==='bulge'){o.bulgeStrength=P.bs;o.bulgeRadiusPx=rr(P.br*N,1)}
+  if(p==='lines'||p==='check')o.phaseModulation=wv?{amplitudePx:P.wa,periodTopPx:P.mu0,periodBottomPx:p==='lines'?P.mu1:P.mu0}:null;
+  o.profile=sq?'square':'sinusoidal';o.edgeRampWidthPx=sq?rr(2*P.blur,1):null;
+  if(T.col)o.color={toneA:ca,toneB:cb,palette:pn,hueA:C.pre?C.hA:null,hueB:C.pre?C.hB:null,luminanceMichelsonPct:mc};else{o.michelsonContrastPct=P.con;o.meanLuminance=P.lum}
+  t=JSON.stringify(o,null,2)}
+ $('desc').value=t}
+document.querySelectorAll('[name=fmt]').forEach(e=>e.onchange=describe);
+
+// ---- export: the viewer hands saves to the downloads capability; a plain browser falls back to an anchor ----
+const dlp=(window.claude&&window.claude.use)?window.claude.use('downloads').catch(()=>null):Promise.resolve(null);
+const fname=()=>`riloid_${$('pat').value}_lam${P.lam}_rot${P.rot}`;
+let mt;const say=t=>{$('msg').textContent=t;clearTimeout(mt);mt=setTimeout(()=>$('msg').textContent='',5000)};
+function anchorSave(blob,n){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=n;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),2000)}
+async function out(data,name){
+ const dl=await dlp;
+ if(dl){try{await dl.save({filename:name,data});say('Saved '+name+'.')}
+  catch(e){const c=e&&e.code;say(c==='declined'?'Save cancelled.':c==='too_large'?'File is too large to save. Choose a smaller output size.':'Could not save '+name+(c?' ('+c+')':'')+'.')}
+  return}
+ anchorSave(data instanceof Blob?data:new Blob([data]),name);say('Download started: '+name)}
+$('png').onclick=()=>$('cv').toBlob(b=>out(b,fname()+'.png'),'image/png');
+$('jpg').onclick=()=>$('cv').toBlob(b=>out(b,fname()+'.jpg'),'image/jpeg',jqv());
+$('pdf').onclick=()=>{const cv=$('cv'),bin=atob(cv.toDataURL('image/jpeg',jqv()).split(',')[1]),jb=new Uint8Array(bin.length);
+ for(let i=0;i<bin.length;i++)jb[i]=bin.charCodeAt(i);
+ const pw=+(+$('pdfw').value*28.3465).toFixed(2),enc=new TextEncoder(),parts=[],xr=[];let off=0;
+ const add=x=>{const b=typeof x==='string'?enc.encode(x):x;parts.push(b);off+=b.length};
+ const obj=(n,body)=>{xr[n]=off;add(`${n} 0 obj\n${body}\nendobj\n`)};
+ add('%PDF-1.4\n');obj(1,'<</Type/Catalog/Pages 2 0 R>>');obj(2,'<</Type/Pages/Kids[3 0 R]/Count 1>>');
+ obj(3,`<</Type/Page/Parent 2 0 R/MediaBox[0 0 ${pw} ${pw}]/Resources<</XObject<</Im0 4 0 R>>>>/Contents 5 0 R>>`);
+ xr[4]=off;add(`4 0 obj\n<</Type/XObject/Subtype/Image/Width ${cv.width}/Height ${cv.height}/ColorSpace/DeviceRGB/BitsPerComponent 8/Filter/DCTDecode/Length ${jb.length}>>\nstream\n`);add(jb);add('\nendstream\nendobj\n');
+ const cs=`q ${pw} 0 0 ${pw} 0 0 cm /Im0 Do Q`;obj(5,`<</Length ${cs.length}>>\nstream\n${cs}\nendstream`);
+ const x0=off;add('xref\n0 6\n0000000000 65535 f \n');for(let i=1;i<=5;i++)add(String(xr[i]).padStart(10,'0')+' 00000 n \n');
+ add(`trailer\n<</Size 6/Root 1 0 R>>\nstartxref\n${x0}\n%%EOF`);out(new Blob(parts,{type:'application/pdf'}),fname()+'.pdf')};
+$('copy').onclick=async e=>{const b=e.currentTarget;try{await navigator.clipboard.writeText($('desc').value)}catch{$('desc').select();try{document.execCommand('copy')}catch{}}b.textContent='Copied';setTimeout(()=>b.textContent='Copy text',1500)};
+$('txt').onclick=()=>out($('desc').value,fname()+'_description.txt');
+
+// ---- presets from the papers ----
+const PS={fall:{lam:5,wa:32,mu0:400,mu1:130},flat:{lam:5,wa:32,mu0:180,mu1:180},coarse:{lam:32,wa:32,mu0:400,mu1:130},std:{lam:32,wa:16,mu0:256,mu1:64},radial:{pat:'radial',ns:64,prof:'sq'}};
+$('pset').onchange=e=>{const q=PS[e.target.value];if(!q)return;
+ const fire=(id,v,ev)=>{const el=$(id);if(el.type==='checkbox')el.checked=v;else el.value=v;el.dispatchEvent(new Event(ev||'input'))};
+ fire('size',512);fire('rot',0);fire('con',100);fire('lum',128);fire('col',false,'change');
+ fire('pat',q.pat||'lines','change');fire('prof',q.prof||'sin','change');fire('tw',true,'change');
+ for(const k in q)if(k!=='pat'&&k!=='prof')fire(k,q[k]);render()};
+
+applyPre();vis();render();
+</script>
+
+</body></html>
